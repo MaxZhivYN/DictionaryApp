@@ -57,8 +57,13 @@ public class DictionaryAppApplication implements CommandLineRunner {
                             .forEach(System.out::println);
                     break;
                 case 5:
-                    City superCity = Collections.max(cityRepository.findAll(), Comparator.comparing(City::getPopulation));
-                    System.out.println( "["+ superCity.getId() + "] = " + superCity.getPopulation());
+                    List<City> cities = cityRepository.findAll();
+
+                    if (!cities.isEmpty()) {
+                        City superCity = Collections.max(cityRepository.findAll(), Comparator.comparing(City::getPopulation));
+                        System.out.println("[" + superCity.getId() + "] = " + superCity.getPopulation());
+                    }
+
                     break;
                 case 6:
                     Map<String, Integer> dictionary = new HashMap<>();
@@ -71,6 +76,8 @@ public class DictionaryAppApplication implements CommandLineRunner {
                     break;
                 default:
                     System.out.println("Не правильный ключ.");
+                    System.out.println();
+                    break;
             }
         }
     }
