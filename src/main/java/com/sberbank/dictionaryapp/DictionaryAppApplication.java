@@ -3,6 +3,7 @@ package com.sberbank.dictionaryapp;
 import com.sberbank.dictionaryapp.Entitis.City;
 import com.sberbank.dictionaryapp.data.DataParser;
 import com.sberbank.dictionaryapp.repositories.CityRepository;
+import com.sberbank.dictionaryapp.servicies.CityService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,13 +14,12 @@ import java.util.*;
 
 @SpringBootApplication
 public class DictionaryAppApplication implements CommandLineRunner {
-    private final CityRepository cityRepository;
-    private final DataParser dataParser;
+    private final CityService cityService;
+
     private static ApplicationContext applicationContext;
 
-    public DictionaryAppApplication(CityRepository cityRepository, DataParser dataParser) {
-        this.cityRepository = cityRepository;
-        this.dataParser = dataParser;
+    public DictionaryAppApplication(CityService cityService) {
+        this.cityService = cityService;
     }
 
     public static void main(String[] args) {
@@ -37,37 +37,32 @@ public class DictionaryAppApplication implements CommandLineRunner {
 
             switch (cmd) {
                 case 0:
-                    SpringApplication.exit(applicationContext, () -> 0);
+                    cityService.exitApplication(applicationContext);
                 case 1:
-                    cityRepository.findAll().forEach(System.out::println);
+                    cityService.getCities()
+                            .forEach(System.out::println);
                     break;
                 case 2:
-                    cityRepository.saveAll(dataParser.parseData());
+                    cityService.saveCitiesFromFile();
                     break;
                 case 3:
-                    cityRepository.findAll(Sort.by(Sort.Order.asc("name").ignoreCase()))
+                    cityService.getCitiesOrderByName()
                             .forEach(System.out::println);
                     break;
                 case 4:
-                    List<Sort.Order> orders = new ArrayList<>();
-                    orders.add(new Sort.Order(Sort.Direction.ASC, "district"));
-                    orders.add(new Sort.Order(Sort.Direction.ASC, "name"));
-
-                    cityRepository.findAll(Sort.by(orders))
+                    cityService.getCitiesOrderByDistrictAndName()
                             .forEach(System.out::println);
                     break;
                 case 5:
-                    List<City> cities = cityRepository.findAll();
+                    City city = cityService.getCityWithMaxPopulation();
 
-                    if (!cities.isEmpty()) {
-                        City superCity = Collections.max(cityRepository.findAll(), Comparator.comparing(City::getPopulation));
-                        System.out.println("[" + superCity.getId() + "] = " + superCity.getPopulation());
+                    if (city != null) {
+                        System.out.println("[" + city.getId() + "] = " + city.getPopulation());
                     }
 
                     break;
                 case 6:
-                    Map<String, Integer> dictionary = new HashMap<>();
-                    cityRepository.findAll().forEach(city -> dictionary.merge(city.getRegion(), 1, (o, n) -> 1 + n));
+                    Map<String, Integer> dictionary = cityService.getRegionAndCountOfCity();
 
                     for (Map.Entry<String, Integer> elem : dictionary.entrySet()) {
                         System.out.println(elem.getKey() + " - " + elem.getValue());
